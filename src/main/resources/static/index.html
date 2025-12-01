@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vokabel Trainer</title>
+  <meta name="theme-color" content="#4361ee" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon-192.png">
+</head>
+<body>
+  <main class="container">
+    <h1>Vokabel Trainer</h1>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="practice">Üben</button>
+      <button class="tab" data-tab="list">Liste</button>
+    </div>
+
+    <section class="card tab-panel" data-panel="practice">
+      <h2>Vokabel hinzufügen</h2>
+      <form id="addForm">
+        <input id="word" placeholder="Wort (z. B. apple)" required />
+        <input id="translation" placeholder="Übersetzung (z. B. Apfel)" required />
+        <button type="submit">Hinzufügen</button>
+      </form>
+      <div class="controls">
+        <label><input type="checkbox" id="reverseToggle" /> Umgekehrt (Deutsch → Original)</label>
+        <button id="startPractice">Üben starten</button>
+        <button id="export">Exportieren</button>
+        <button id="importBtn">Importieren</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+
+      <div id="practiceCard" style="display:none">
+        <h2>Übung</h2>
+        <div id="cardWord" class="big"></div>
+        <input id="answer" placeholder="Übersetzung eingeben" />
+        <div class="practice-controls">
+          <button id="check">Prüfen</button>
+          <button id="next">Nächstes</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+        <div id="stats" class="stats"></div>
+      </div>
+    </section>
+
+    <section class="card tab-panel" data-panel="list" style="display:none">
+      <h2>Vokabelliste</h2>
+      <ul id="list" class="list"></ul>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

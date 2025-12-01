@@ -1,6 +1,6 @@
 # vokabel-app
 
-
+Einfache, lokale Vokabel-App (HTML/JS). Öffne index.html im Browser, Vokabeln speichern sich im localStorage. Funktionen: Vokabeln hinzufügen, import/export als JSON, Übungsmodus mit Eingabeprüfung.
 
 ## Getting started
 
