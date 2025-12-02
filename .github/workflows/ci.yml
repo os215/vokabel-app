@@ -103,7 +103,6 @@ jobs:
         run: az extension add --name containerapp --yes || true
 
       - name: Login to GHCR (if private)
-        if: ${{ secrets.GHCR_PAT != '' }}
         run: |
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
