@@ -1,4 +1,4 @@
-package com.example.vokabel;
+package net.suevern.vokabel;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

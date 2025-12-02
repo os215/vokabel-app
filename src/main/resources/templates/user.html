@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Information</title>
+</head>
+
+<body>
+<h1>User Information</h1>
+<dl>
+    <dt>Username:</dt>
+    <dd th:text="${username}"/>
+    <dt>Name:</dt>
+    <dd th:text="${userName}"/>
+    <dt>E-Mail:</dt>
+    <dd th:text="${userMail}"/>
+    <dt>Authorities:</dt>
+    <dd>
+        <ul>
+            <li th:each="authority: ${userAuthorities}" th:text="${authority}"></li>
+        </ul>
+    </dd>
+    <dt>Remote-Address:</dt>
+    <dd th:text="${userRemoteAddress}"/>
+</dl>
+
+</body>
+</html>

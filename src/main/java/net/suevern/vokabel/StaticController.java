@@ -1,4 +1,4 @@
-package com.example.vokabel;
+package net.suevern.vokabel;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.io.ClassPathResource;
