@@ -113,7 +113,7 @@ jobs:
           IMAGE_FULL=${IMAGE}
           az containerapp show -g ${AZURE_RG} -n ${AZURE_APP_NAME} >/dev/null 2>&1 && \
             az containerapp update -g ${AZURE_RG} -n ${AZURE_APP_NAME} --image ${IMAGE_FULL} || \
-            az containerapp create -g ${AZURE_RG} -n ${AZURE_APP_NAME} --environment ${AZURE_ENV} --image ${IMAGE_FULL} --ingress external --target-port 8080 --registry-server ghcr.io --registry-username ${GITHUB_ACTOR} --registry-password ${GHCR_PAT:-}
+            az containerapp create -g ${AZURE_RG} -n ${AZURE_APP_NAME} --environment ${AZURE_ENV} --image ${IMAGE_FULL} --ingress external --target-port 8080 --registry-server ghcr.io --registry-username ${GITHUB_ACTOR} --registry-password ${secrets.GHCR_PAT:-}
 
       - name: Show Container App URL
         run: az containerapp show -g ${AZURE_RG} -n ${AZURE_APP_NAME} --query properties.configuration.ingress.fqdn -o tsv
