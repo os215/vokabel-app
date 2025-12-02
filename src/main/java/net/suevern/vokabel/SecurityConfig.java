@@ -14,11 +14,6 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                    "/",
-                    "/index.html",
-                    "/styles.css",
-                    "/app.js",
-                    "/sw.js",
                     "/manifest.json",
                     "/icon-192.png",
                     "/icon-512.png",
