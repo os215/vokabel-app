@@ -36,6 +36,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.seidengarn</groupId>
+            <artifactId>keepass-http-java-client</artifactId>
+            <version>1.5.8</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>

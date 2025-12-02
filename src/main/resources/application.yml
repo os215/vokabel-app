@@ -1,0 +1,16 @@
+server:
+  port: 8080
+  max-http-request-header-size: 20000
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          azure:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope: openid,profile,email
+        provider:
+          azure:
+            issuer-uri: https://login.microsoftonline.com/${TENANT_ID}/v2.0
