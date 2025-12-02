@@ -72,8 +72,49 @@ jobs:
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
+        id: buildpush
         with:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/${{ github.repository_owner }}/vokabel-server:latest,ghcr.io/${{ github.repository_owner }}/vokabel-server:${{ github.sha }}
+
+  deploy-azure:
+    needs: docker
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    env:
+      AZURE_RG: "rg_app_test"
+      AZURE_ENV: "env-app-test"
+      AZURE_APP_NAME: "vokabel-app"
+      IMAGE: "ghcr.io/${{ github.repository_owner }}/vokabel-server:latest"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Ensure Container Apps extension
+        run: az extension add --name containerapp --yes || true
+
+      - name: Login to GHCR (if private)
+        if: ${{ secrets.GHCR_PAT != '' }}
+        run: |
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Create/Update Container App
+        run: |
+          # try to show the app; if exists use update, else create
+          set -e
+          IMAGE_FULL=${IMAGE}
+          az containerapp show -g ${AZURE_RG} -n ${AZURE_APP_NAME} >/dev/null 2>&1 && \
+            az containerapp update -g ${AZURE_RG} -n ${AZURE_APP_NAME} --image ${IMAGE_FULL} || \
+            az containerapp create -g ${AZURE_RG} -n ${AZURE_APP_NAME} --environment ${AZURE_ENV} --image ${IMAGE_FULL} --ingress external --target-port 8080 --registry-server ghcr.io --registry-username ${GITHUB_ACTOR} --registry-password ${GHCR_PAT:-}
+
+      - name: Show Container App URL
+        run: az containerapp show -g ${AZURE_RG} -n ${AZURE_APP_NAME} --query properties.configuration.ingress.fqdn -o tsv
