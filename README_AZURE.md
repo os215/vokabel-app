@@ -19,7 +19,13 @@ Azure Container Apps deployment (overview)
 
 4) Verify: az containerapp show -g rg_app-test -n vokabel-app --query properties.configuration.ingress.fqdn -o tsv
 
-5)
+5) Create App Registration
+   APP_ID:
+   az ad app create --display-name "Vokabel Trainer" --web-redirect-uris "https://vokabel-app.jollyriver-109d3335.germanywestcentral.azurecontainerapps.io/" --query appId -o tsv
+   Client Secret:
+   az ad app credential reset --id "$APP_ID" --append --credential-description "ci-secret-$(date -u +%Y%m%d%H%M%S)" \
+   --years 2 --query password -o tsv
+
 how can i update the application?
 
    Manual update: edit code, build the fat JAR and image, then push the image to your registry — e.g. mvn -DskipTests
