@@ -1,18 +1,29 @@
-*{box-sizing:border-box;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-body{background:#f5f6fb;color:#111;margin:0;padding:20px}
+:root{
+  --bg-1:#f5f6fb;
+  --bg-2:#eef2ff;
+  --card:#ffffff;
+  --primary:#4F46E5;
+  --accent:#06b6d4;
+  --muted:#6b7280;
+  --shadow:rgba(16,24,40,.06);
+}
+*{box-sizing:border-box;font-family:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+body{background:linear-gradient(180deg,var(--bg-1),#eef2f9);color:#0f172a;margin:0;padding:24px}
 .container{max-width:760px;margin:0 auto}
-.card{background:#fff;border-radius:8px;padding:16px;margin:12px 0;box-shadow:0 1px 4px rgba(16,24,40,.06)}
-input,button{padding:8px 10px;border:1px solid #ddd;border-radius:6px}
-input{width:100%;margin:6px 0}
-button{cursor:pointer}
+h1{color:var(--primary);margin:0 0 12px;font-size:32px}
+.card{background:var(--card);border-radius:10px;padding:18px;margin:14px 0;box-shadow:0 6px 18px var(--shadow)}
+input,button{padding:10px 12px;border:1px solid #e6e9ef;border-radius:8px}
+input{width:100%;margin:8px 0}
+button{cursor:pointer;background:linear-gradient(90deg,var(--primary),#7c3aed);color:#fff;border:none;box-shadow:0 6px 12px rgba(79,70,229,.12)}
+button.secondary{background:transparent;color:var(--primary);border:1px solid rgba(79,70,229,.12)}
 .list{list-style:none;padding:0;margin:0}
-.list li{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0}
-.big{font-size:28px;font-weight:600;margin:12px 0}
+.list li{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f4ff}
+.big{font-size:28px;font-weight:700;margin:14px 0;color:#0f172a}
 .feedback{margin-top:8px}
-.stats{margin-top:8px;color:#555}
-.practice-controls{display:flex;gap:8px;margin-top:8px}
-.controls{display:flex;gap:8px;margin-top:8px}
+.stats{margin-top:8px;color:var(--muted)}
+.practice-controls{display:flex;gap:8px;margin-top:12px}
+.controls{display:flex;gap:8px;margin-top:12px}
 .tabs{display:flex;gap:8px;margin:12px 0}
-.tab{padding:8px 12px;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer}
-.tab.active{background:#eef2ff;border-color:#c7d2fe}
+.tab{padding:8px 14px;border-radius:8px;cursor:pointer;border:1px solid transparent;background:transparent;color:var(--muted)}
+.tab.active{background:linear-gradient(90deg,#eef2ff,#f6f3ff);border-color:rgba(79,70,229,.12);color:var(--primary);box-shadow:0 4px 10px rgba(79,70,229,.06)}
 .tab-panel{display:block}
