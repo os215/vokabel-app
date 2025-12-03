@@ -25,6 +25,9 @@ Azure Container Apps deployment (overview)
    Client Secret:
    az ad app credential reset --id "$APP_ID" --append --credential-description "ci-secret-$(date -u +%Y%m%d%H%M%S)" \
    --years 2 --query password -o tsv
+6) Volume / Storage
+   az storage account create -n storagevokabeldata -g rg_app-test -l germanywestcentral --sku Standard_LRS
+   az storage account keys list -g rg_app-test -n storagevokabeldata --query '[0].value' -o tsv
 
 how can i update the application?
 
