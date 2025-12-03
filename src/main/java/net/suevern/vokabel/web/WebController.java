@@ -19,6 +19,11 @@ public class WebController {
         this.applicationContext = applicationContext;
     }
 
+    @GetMapping(value = "/")
+    public String getHome() {
+        return "index";
+    }
+
     @GetMapping(value = "/user.html")
     public String getUserinfo(OAuth2AuthenticationToken token, Model model) {
         model.addAttribute("userAuthorities", token == null || token.getAuthorities() == null ? null

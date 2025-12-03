@@ -5,20 +5,30 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vokabel Trainer 0.1a</title>
   <meta name="theme-color" content="#4F46E5" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="/styles.css" />
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" href="/icon-192.png">
 </head>
 <body>
   <main class="container">
-    <h1>Vokabel Trainer 0.1b</h1>
+    <h1>Vokabel Trainer</h1>
 
     <div class="tabs">
       <button class="tab active" data-tab="practice">Üben</button>
-      <button class="tab" data-tab="list">Liste</button>
+      <button class="tab" data-tab="list">Listen</button>
     </div>
 
     <section class="card tab-panel" data-panel="practice">
+      <div class="controls" style="margin-bottom:12px">
+        <label style="flex:1">
+          Liste:
+          <select id="listSelector" style="width:100%;margin-top:4px;padding:8px;border:1px solid #e6e9ef;border-radius:6px">
+            <option value="">Lade Listen...</option>
+          </select>
+        </label>
+        <button id="newListBtn" style="margin-left:8px">Neue Liste</button>
+      </div>
+
       <h2>Vokabel hinzufügen</h2>
       <form id="addForm">
         <input id="word" placeholder="Wort (z. B. apple)" required />
@@ -28,9 +38,6 @@
       <div class="controls">
         <label><input type="checkbox" id="reverseToggle" /> Umgekehrt (Deutsch → Original)</label>
         <button id="startPractice">Üben starten</button>
-        <button id="export">Exportieren</button>
-        <button id="importBtn">Importieren</button>
-        <input id="importFile" type="file" accept="application/json" style="display:none" />
       </div>
 
       <div id="practiceCard" style="display:none">
@@ -59,7 +66,7 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
   <script>
   if('serviceWorker' in navigator){
     function showUpdate() {

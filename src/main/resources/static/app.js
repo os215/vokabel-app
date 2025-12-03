@@ -1,114 +1,149 @@
-// Einfacher Vokabeltrainer, speichert in localStorage
-const STORAGE_KEY = 'vokabel-app:words'
+// Vokabeltrainer with server-side storage
+let currentListId = null
+let currentList = null
 let words = []
 let practiceQueue = []
 let current = null
 
-// DOM
-const listEl = document.getElementById('list')
-const addForm = document.getElementById('addForm')
-const wordIn = document.getElementById('word')
-const transIn = document.getElementById('translation')
-const startBtn = document.getElementById('startPractice')
-const reverseToggle = document.getElementById('reverseToggle')
+// DOM refs (set after DOMContentLoaded)
+let listSelector, newListBtn, listEl, addForm, wordIn, transIn, startBtn, reverseToggle
+let practiceCard, cardWord, answerIn, checkBtn, nextBtn, feedback, stats
 let practiceReverse = false
-const exportBtn = document.getElementById('export')
-const importBtn = document.getElementById('importBtn')
-const importFile = document.getElementById('importFile')
-const practiceCard = document.getElementById('practiceCard')
-const cardWord = document.getElementById('cardWord')
-const answerIn = document.getElementById('answer')
-const checkBtn = document.getElementById('check')
-const nextBtn = document.getElementById('next')
-const feedback = document.getElementById('feedback')
-const stats = document.getElementById('stats')
 
-// helper to render list when the panel is visible
-function ensureListRendered(){
-  // renderList idempotent
-  renderList()
+// API helpers
+async function apiGet(url) {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
 }
 
-document.querySelectorAll('.tab').forEach(btn=>{btn.addEventListener('click', ()=>{
-  if(btn.dataset.tab==='list') ensureListRendered()
-})
-})
-
-// Laden / Speichern
-function load(){
-  try{
-    words = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
-  }catch(e){words = []}
+async function apiPost(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
 }
-function save(){localStorage.setItem(STORAGE_KEY, JSON.stringify(words))}
 
-// UI
-function renderList(){
+async function apiPut(url, body) {
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  return res.json()
+}
+
+async function apiDelete(url) {
+  const res = await fetch(url, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+}
+
+// Load lists
+async function loadLists() {
+  try {
+    const lists = await apiGet('/api/vocab/lists')
+    listSelector.innerHTML = ''
+    if (lists.length === 0) {
+      listSelector.innerHTML = '<option value="">Keine Listen vorhanden</option>'
+      currentListId = null
+      words = []
+      renderList()
+      return
+    }
+    lists.forEach(list => {
+      const opt = document.createElement('option')
+      opt.value = list.id
+      opt.textContent = list.name
+      listSelector.appendChild(opt)
+    })
+    const storedId = localStorage.getItem('vokabel-app:currentListId')
+    if (storedId && lists.find(l => l.id == storedId)) {
+      listSelector.value = storedId
+    } else {
+      listSelector.value = lists[0].id
+    }
+    await loadCurrentList()
+  } catch (e) {
+    console.error('Failed to load lists', e)
+    listSelector.innerHTML = '<option value="">Fehler beim Laden</option>'
+  }
+}
+
+async function loadCurrentList() {
+  const id = listSelector.value
+  if (!id) {
+    currentListId = null
+    currentList = null
+    words = []
+    renderList()
+    return
+  }
+  try {
+    currentList = await apiGet(`/api/vocab/lists/${id}`)
+    currentListId = currentList.id
+    words = currentList.words || []
+    localStorage.setItem('vokabel-app:currentListId', currentListId)
+    renderList()
+    renderStats()
+  } catch (e) {
+    console.error('Failed to load list', e)
+  }
+}
+
+function renderList() {
   listEl.innerHTML = ''
-  words.forEach((w, i)=>{
+  if (words.length === 0) {
+    listEl.innerHTML = '<li style="color:#999">Keine Vokabeln in dieser Liste</li>'
+    return
+  }
+  words.forEach((w) => {
     const li = document.createElement('li')
     li.innerHTML = `<span>${escapeHtml(w.word)} — ${escapeHtml(w.translation)}</span>`
     const right = document.createElement('div')
     const del = document.createElement('button')
     del.textContent = 'Löschen'
-    del.onclick = ()=>{words.splice(i,1);save();renderList()}
+    del.onclick = async () => {
+      if (!confirm('Vokabel löschen?')) return
+      try {
+        await apiDelete(`/api/vocab/words/${w.id}`)
+        await loadCurrentList()
+      } catch (e) {
+        alert('Fehler beim Löschen')
+      }
+    }
     right.appendChild(del)
     li.appendChild(right)
     listEl.appendChild(li)
   })
 }
 
-function escapeHtml(s){return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-
-addForm.onsubmit = e=>{
-  e.preventDefault()
-  const w = wordIn.value.trim()
-  const t = transIn.value.trim()
-  if(!w||!t) return
-  words.push({word:w,translation:t,correct:0,attempts:0})
-  save();renderList();wordIn.value='';transIn.value='';
+function escapeHtml(s) {
+  return (s + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-startBtn.onclick = ()=>{
-  if(words.length===0){alert('Keine Vokabeln vorhanden.');return}
-  practiceReverse = !!(reverseToggle && reverseToggle.checked)
-  practiceQueue = shuffle(words.slice())
-  // show practice panel and hide list
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab==='practice'))
-  document.querySelectorAll('.tab-panel').forEach(p=>p.style.display = p.dataset.panel==='practice' ? 'block' : 'none')
-  document.getElementById('practiceCard').style.display = 'block'
-  nextCard()
+function renderStats() {
+  const total = words.length
+  const done = words.filter(w => w.attempts > 0).length
+  stats.textContent = `Vokabeln: ${total} · bearbeitet: ${done}`
 }
 
-// tab switching
-document.querySelectorAll('.tab').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b===btn))
-    document.querySelectorAll('.tab-panel').forEach(p=>p.style.display = p.dataset.panel===btn.dataset.tab ? 'block' : 'none')
-  })
-})
-
-checkBtn.onclick = ()=>{
-  if(!current) return
-  const ans = answerIn.value.trim().toLowerCase()
-  const correct = (practiceReverse ? current.word : current.translation).trim().toLowerCase()
-  current.attempts = (current.attempts||0)+1
-  if(ans === correct){
-    feedback.textContent = 'Richtig!'
-    current.correct = (current.correct||0)+1
-  }else{
-    feedback.textContent = `Falsch — richtig: ${practiceReverse ? current.word : current.translation}`
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
   }
-  save();renderStats();
+  return a
 }
 
-nextBtn.onclick = ()=> nextCard()
-
-function nextCard(){
-  feedback.textContent=''
-  answerIn.value=''
-  if(practiceQueue.length===0){
-    cardWord.textContent='Fertig!'
+function nextCard() {
+  feedback.textContent = ''
+  answerIn.value = ''
+  if (practiceQueue.length === 0) {
+    cardWord.textContent = 'Fertig!'
     current = null
     return
   }
@@ -118,47 +153,101 @@ function nextCard(){
   renderStats()
 }
 
-function renderStats(){
-  const total = words.length
-  const done = words.filter(w=>w.attempts>0).length
-  stats.textContent = `Vokabeln: ${total} · bearbeitet: ${done}`
-}
+// Init after DOM loaded
+document.addEventListener('DOMContentLoaded', () => {
+  listSelector = document.getElementById('listSelector')
+  newListBtn = document.getElementById('newListBtn')
+  listEl = document.getElementById('list')
+  addForm = document.getElementById('addForm')
+  wordIn = document.getElementById('word')
+  transIn = document.getElementById('translation')
+  startBtn = document.getElementById('startPractice')
+  reverseToggle = document.getElementById('reverseToggle')
+  practiceCard = document.getElementById('practiceCard')
+  cardWord = document.getElementById('cardWord')
+  answerIn = document.getElementById('answer')
+  checkBtn = document.getElementById('check')
+  nextBtn = document.getElementById('next')
+  feedback = document.getElementById('feedback')
+  stats = document.getElementById('stats')
 
-exportBtn.onclick = ()=>{
-  const data = JSON.stringify(words, null, 2)
-  const blob = new Blob([data],{type:'application/json'})
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url; a.download = 'vokabeln.json'
-  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
-}
+  listSelector.onchange = () => loadCurrentList()
 
-importBtn.onclick = ()=> importFile.click()
-importFile.onchange = e=>{
-  const f = e.target.files[0]
-  if(!f) return
-  const reader = new FileReader()
-  reader.onload = ()=>{
-    try{
-      const data = JSON.parse(reader.result)
-      if(Array.isArray(data)){
-        // merge
-        data.forEach(d=>{
-          if(d.word && d.translation) words.push({word:d.word,translation:d.translation,correct:d.correct||0,attempts:d.attempts||0})
-        })
-        save();renderList();
-      }else alert('Ungültiges Format')
-    }catch(err){alert('Fehler beim Einlesen')}
+  newListBtn.onclick = async () => {
+    const name = prompt('Name der neuen Liste:')
+    if (!name) return
+    try {
+      await apiPost('/api/vocab/lists', { name })
+      await loadLists()
+    } catch (e) {
+      alert('Fehler beim Erstellen der Liste')
+    }
   }
-  reader.readAsText(f)
-}
 
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+  addForm.onsubmit = async (e) => {
+    e.preventDefault()
+    const w = wordIn.value.trim()
+    const t = transIn.value.trim()
+    if (!w || !t) return
+    if (!currentListId) {
+      alert('Bitte wähle oder erstelle eine Liste')
+      return
+    }
+    try {
+      await apiPost(`/api/vocab/lists/${currentListId}/words`, { word: w, translation: t })
+      await loadCurrentList()
+      wordIn.value = ''
+      transIn.value = ''
+    } catch (e) {
+      alert('Fehler beim Hinzufügen der Vokabel')
+    }
+  }
 
-// init
-load();renderList();renderStats()
+  startBtn.onclick = () => {
+    if (words.length === 0) {
+      alert('Keine Vokabeln vorhanden.')
+      return
+    }
+    practiceReverse = !!(reverseToggle && reverseToggle.checked)
+    practiceQueue = shuffle(words.slice())
+    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'practice'))
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = p.dataset.panel === 'practice' ? 'block' : 'none')
+    practiceCard.style.display = 'block'
+    nextCard()
+  }
 
-// register service worker for PWA
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').catch(()=>{})
-}
+  document.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b === btn))
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = p.dataset.panel === btn.dataset.tab ? 'block' : 'none')
+      if (btn.dataset.tab === 'list') renderList()
+    })
+  })
+
+  checkBtn.onclick = async () => {
+    if (!current) return
+    const ans = answerIn.value.trim().toLowerCase()
+    const correct = (practiceReverse ? current.word : current.translation).trim().toLowerCase()
+    current.attempts = (current.attempts || 0) + 1
+    if (ans === correct) {
+      feedback.textContent = 'Richtig!'
+      current.correct = (current.correct || 0) + 1
+    } else {
+      feedback.textContent = `Falsch — richtig: ${practiceReverse ? current.word : current.translation}`
+    }
+    try {
+      await apiPut(`/api/vocab/words/${current.id}`, { correct: current.correct, attempts: current.attempts })
+    } catch (e) {
+      console.error('Failed to update word stats', e)
+    }
+    renderStats()
+  }
+
+  nextBtn.onclick = () => nextCard()
+
+  loadLists()
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => { })
+  }
+})

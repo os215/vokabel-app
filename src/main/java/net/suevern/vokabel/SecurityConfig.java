@@ -24,6 +24,9 @@ public class SecurityConfig {
                 ).permitAll()
                 .anyRequest().authenticated()
             )
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/api/**")
+            )
             .oauth2Login(Customizer.withDefaults())
             .logout(logout -> logout.logoutSuccessUrl("/"));
         return http.build();

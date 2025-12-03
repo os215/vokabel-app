@@ -14,3 +14,14 @@ spring:
         provider:
           azure:
             issuer-uri: https://login.microsoftonline.com/${TENANT_ID}/v2.0
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  datasource:
+    url: jdbc:derby:/data/vokabeldb;create=true
+    driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
+    username:
+    password:
+  derby:
+    console: false
