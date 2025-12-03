@@ -19,7 +19,5 @@ spring:
       ddl-auto: update
     show-sql: false
   datasource:
-    url: jdbc:hsqldb:file:/data/vokabeldb;shutdown=true
-    driver-class-name: org.hsqldb.jdbc.JDBCDriver
-    username:
-    password:
+    url: jdbc:sqlserver://molfilodb.database.windows.net:1433;database=db_app_test;authentication=ActiveDirectoryManagedIdentity;user=${CLIENT_ID}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
