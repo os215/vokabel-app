@@ -19,9 +19,7 @@ spring:
       ddl-auto: update
     show-sql: false
   datasource:
-    url: jdbc:derby:/data/vokabeldb;create=true
-    driver-class-name: org.apache.derby.jdbc.EmbeddedDriver
+    url: jdbc:hsqldb:file:/data/vokabeldb;shutdown=true
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
     username:
     password:
-  derby:
-    console: false
