@@ -2,9 +2,10 @@ package net.suevern.vokabel.web;
 
 import java.security.Principal;
 import java.text.MessageFormat;
-import java.util.Date;
+import java.time.Instant;
 
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -22,9 +23,18 @@ public class GlobalModelControllerAdvice {
         return principal == null ? null : principal.getName();
     }
 
+    @ModelAttribute("usermail")
+    public String usermail(OAuth2AuthenticationToken token) {
+        return token == null || token.getPrincipal() == null ? null : token.getPrincipal().getAttribute("email");
+    }
+
     @ModelAttribute("buildVersion")
     public String buildVersion() {
-        return MessageFormat.format("{0} ({1,date,short} {1,time,short})", buildProperties.getVersion(),
-                Date.from(buildProperties.getTime()));
+        return MessageFormat.format("{0}", buildProperties.getVersion());
+    }
+
+    @ModelAttribute("buildDate")
+    public Instant buildDate() {
+        return buildProperties.getTime();
     }
 }
