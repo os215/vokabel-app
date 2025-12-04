@@ -1,14 +1,14 @@
-// Vokabeltrainer with server-side storage
+// Vokabeltrainer - Mobile Web App
 let currentListId = null
 let currentList = null
 let words = []
 let practiceQueue = []
 let current = null
-
-// DOM refs (set after DOMContentLoaded)
-let listSelector, newListBtn, listEl, addForm, wordIn, transIn, startBtn, reverseToggle
-let practiceCard, cardWord, answerIn, checkBtn, nextBtn, feedback, stats
 let practiceReverse = false
+
+// DOM refs
+let listSelector, newListBtn, listEl, addForm, wordIn, transIn, startBtn, reverseToggle
+let practiceCard, practiceSetup, cardWord, answerIn, checkBtn, nextBtn, feedback, stats, statsSummary, progressBar
 
 // API helpers
 async function apiGet(url) {
@@ -52,6 +52,7 @@ async function loadLists() {
       currentListId = null
       words = []
       renderList()
+      updateStatsSummary()
       return
     }
     lists.forEach(list => {
@@ -80,6 +81,7 @@ async function loadCurrentList() {
     currentList = null
     words = []
     renderList()
+    updateStatsSummary()
     return
   }
   try {
@@ -89,6 +91,7 @@ async function loadCurrentList() {
     localStorage.setItem('vokabel-app:currentListId', currentListId)
     renderList()
     renderStats()
+    updateStatsSummary()
   } catch (e) {
     console.error('Failed to load list', e)
   }
@@ -97,17 +100,17 @@ async function loadCurrentList() {
 function renderList() {
   listEl.innerHTML = ''
   if (words.length === 0) {
-    listEl.innerHTML = '<li style="color:#999">Keine Vokabeln in dieser Liste</li>'
+    listEl.innerHTML = '<li style="color:#94a3b8;padding:24px;text-align:center">Keine Vokabeln vorhanden<br><small>Füge neue Vokabeln hinzu</small></li>'
     return
   }
   words.forEach((w) => {
     const li = document.createElement('li')
-    li.innerHTML = `<span>${escapeHtml(w.word)} — ${escapeHtml(w.translation)}</span>`
-    const right = document.createElement('div')
+    const span = document.createElement('span')
+    span.textContent = `${escapeHtml(w.word)} — ${escapeHtml(w.translation)}`
     const del = document.createElement('button')
     del.textContent = 'Löschen'
     del.onclick = async () => {
-      if (!confirm('Vokabel löschen?')) return
+      if (!confirm('Vokabel wirklich löschen?')) return
       try {
         await apiDelete(`/api/vocab/words/${w.id}`)
         await loadCurrentList()
@@ -115,8 +118,8 @@ function renderList() {
         alert('Fehler beim Löschen')
       }
     }
-    right.appendChild(del)
-    li.appendChild(right)
+    li.appendChild(span)
+    li.appendChild(del)
     listEl.appendChild(li)
   })
 }
@@ -125,10 +128,32 @@ function escapeHtml(s) {
   return (s + '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+function updateStatsSummary() {
+  if (!statsSummary) return
+  const total = words.length
+  const done = words.filter(w => w.attempts > 0).length
+  if (total === 0) {
+    statsSummary.textContent = 'Noch keine Vokabeln vorhanden'
+  } else {
+    statsSummary.textContent = `${total} Vokabeln · ${done} geübt`
+  }
+}
+
 function renderStats() {
   const total = words.length
   const done = words.filter(w => w.attempts > 0).length
-  stats.textContent = `Vokabeln: ${total} · bearbeitet: ${done}`
+  const remaining = practiceQueue.length
+  if (stats) {
+    stats.textContent = `${remaining} übrig · ${total - remaining} von ${total} geschafft`
+  }
+}
+
+function updateProgress() {
+  if (!progressBar) return
+  const total = words.length
+  const remaining = practiceQueue.length
+  const progress = total > 0 ? ((total - remaining) / total) * 100 : 0
+  progressBar.style.width = progress + '%'
 }
 
 function shuffle(a) {
@@ -141,19 +166,46 @@ function shuffle(a) {
 
 function nextCard() {
   feedback.textContent = ''
+  feedback.className = 'feedback'
   answerIn.value = ''
+  checkBtn.style.display = 'block'
+  nextBtn.style.display = 'none'
+  
   if (practiceQueue.length === 0) {
-    cardWord.textContent = 'Fertig!'
+    cardWord.textContent = '🎉 Fertig!'
+    answerIn.style.display = 'none'
+    checkBtn.style.display = 'none'
+    nextBtn.textContent = 'Nochmal üben'
+    nextBtn.style.display = 'block'
+    nextBtn.onclick = () => {
+      practiceQueue = shuffle(words.slice())
+      answerIn.style.display = 'block'
+      nextBtn.textContent = 'Weiter'
+      nextCard()
+    }
     current = null
     return
   }
+  
   current = practiceQueue.shift()
   cardWord.textContent = practiceReverse ? current.translation : current.word
-  answerIn.placeholder = practiceReverse ? 'Original eingeben' : 'Übersetzung eingeben'
+  answerIn.placeholder = practiceReverse ? 'Wort eingeben...' : 'Übersetzung eingeben...'
   renderStats()
+  updateProgress()
+  setTimeout(() => answerIn.focus(), 100)
 }
 
-// Init after DOM loaded
+// Navigation
+function switchPanel(panelName) {
+  document.querySelectorAll('.content-panel').forEach(p => {
+    p.classList.toggle('active', p.dataset.panel === panelName)
+  })
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === panelName)
+  })
+}
+
+// Init
 document.addEventListener('DOMContentLoaded', () => {
   listSelector = document.getElementById('listSelector')
   newListBtn = document.getElementById('newListBtn')
@@ -164,12 +216,23 @@ document.addEventListener('DOMContentLoaded', () => {
   startBtn = document.getElementById('startPractice')
   reverseToggle = document.getElementById('reverseToggle')
   practiceCard = document.getElementById('practiceCard')
+  practiceSetup = document.getElementById('practiceSetup')
   cardWord = document.getElementById('cardWord')
   answerIn = document.getElementById('answer')
   checkBtn = document.getElementById('check')
   nextBtn = document.getElementById('next')
   feedback = document.getElementById('feedback')
   stats = document.getElementById('stats')
+  statsSummary = document.getElementById('statsSummary')
+  progressBar = document.getElementById('progressBar')
+
+  // Navigation
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchPanel(btn.dataset.tab)
+      if (btn.dataset.tab === 'list') renderList()
+    })
+  })
 
   listSelector.onchange = () => loadCurrentList()
 
@@ -198,6 +261,12 @@ document.addEventListener('DOMContentLoaded', () => {
       await loadCurrentList()
       wordIn.value = ''
       transIn.value = ''
+      wordIn.focus()
+      // Show success feedback
+      const btn = addForm.querySelector('button')
+      const originalText = btn.textContent
+      btn.textContent = '✓ Hinzugefügt'
+      setTimeout(() => btn.textContent = originalText, 1500)
     } catch (e) {
       alert('Fehler beim Hinzufügen der Vokabel')
     }
@@ -208,32 +277,31 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Keine Vokabeln vorhanden.')
       return
     }
-    practiceReverse = !!(reverseToggle && reverseToggle.checked)
+    practiceReverse = reverseToggle.checked
     practiceQueue = shuffle(words.slice())
-    document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === 'practice'))
-    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = p.dataset.panel === 'practice' ? 'block' : 'none')
+    practiceSetup.style.display = 'none'
     practiceCard.style.display = 'block'
+    checkBtn.style.display = 'block'
+    nextBtn.style.display = 'none'
     nextCard()
   }
-
-  document.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b === btn))
-      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = p.dataset.panel === btn.dataset.tab ? 'block' : 'none')
-      if (btn.dataset.tab === 'list') renderList()
-    })
-  })
 
   checkBtn.onclick = async () => {
     if (!current) return
     const ans = answerIn.value.trim().toLowerCase()
     const correct = (practiceReverse ? current.word : current.translation).trim().toLowerCase()
     current.attempts = (current.attempts || 0) + 1
+    
+    checkBtn.style.display = 'none'
+    nextBtn.style.display = 'block'
+    
     if (ans === correct) {
-      feedback.textContent = 'Richtig!'
+      feedback.textContent = '✓ Richtig!'
+      feedback.className = 'feedback correct'
       current.correct = (current.correct || 0) + 1
     } else {
-      feedback.textContent = `Falsch — richtig: ${practiceReverse ? current.word : current.translation}`
+      feedback.textContent = `✗ Falsch — richtig: ${practiceReverse ? current.word : current.translation}`
+      feedback.className = 'feedback incorrect'
     }
     try {
       await apiPut(`/api/vocab/words/${current.id}`, { correct: current.correct, attempts: current.attempts })
@@ -245,6 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   nextBtn.onclick = () => nextCard()
 
-  loadLists()
+  // Enter key to check/next
+  answerIn.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      if (checkBtn.style.display !== 'none') {
+        checkBtn.click()
+      } else {
+        nextBtn.click()
+      }
+    }
+  })
 
+  loadLists()
 })

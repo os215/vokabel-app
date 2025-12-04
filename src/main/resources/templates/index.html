@@ -2,61 +2,108 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vokabel Trainer 0.1a</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Vokabel" />
+  <title>Vokabel Trainer</title>
   <meta name="theme-color" content="#4F46E5" />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
   <link rel="icon" href="/icon-192.png">
 </head>
 <body>
-  <main class="container">
-    <h1>Vokabel Trainer</h1>
-
-    <div class="tabs">
-      <button class="tab active" data-tab="practice">Üben</button>
-      <button class="tab" data-tab="list">Listen</button>
+  <!-- Header with title and list selector -->
+  <header class="app-header">
+    <h1>📚 Vokabel Trainer</h1>
+    <div class="header-controls">
+      <select id="listSelector" class="list-selector">
+        <option value="">Lade Listen...</option>
+      </select>
+      <button id="newListBtn" class="icon-btn" title="Neue Liste">+</button>
     </div>
+  </header>
 
-    <section class="card tab-panel" data-panel="practice">
-      <div class="controls" style="margin-bottom:12px">
-        <label style="flex:1">
-          Liste:
-          <select id="listSelector" style="width:100%;margin-top:4px;padding:8px;border:1px solid #e6e9ef;border-radius:6px">
-            <option value="">Lade Listen...</option>
-          </select>
-        </label>
-        <button id="newListBtn" style="margin-left:8px">Neue Liste</button>
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="practice">
+      <span class="nav-icon">✏️</span>
+      <span class="nav-label">Üben</span>
+    </button>
+    <button class="nav-btn" data-tab="add">
+      <span class="nav-icon">➕</span>
+      <span class="nav-label">Hinzufügen</span>
+    </button>
+    <button class="nav-btn" data-tab="list">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Liste</span>
+    </button>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="app-content">
+    
+    <!-- Practice Panel -->
+    <section class="content-panel active" data-panel="practice">
+      <div id="practiceSetup">
+        <div class="welcome-card">
+          <h2>Bereit zum Lernen?</h2>
+          <p class="stats-summary" id="statsSummary">Wähle eine Liste aus</p>
+          <label class="toggle-control">
+            <input type="checkbox" id="reverseToggle" />
+            <span>🔄 Umgekehrt üben (Deutsch → Original)</span>
+          </label>
+          <button id="startPractice" class="btn-primary btn-large">Jetzt starten</button>
+        </div>
       </div>
 
-      <h2>Vokabel hinzufügen</h2>
-      <form id="addForm">
-        <input id="word" placeholder="Wort (z. B. apple)" required />
-        <input id="translation" placeholder="Übersetzung (z. B. Apfel)" required />
-        <button type="submit">Hinzufügen</button>
-      </form>
-      <div class="controls">
-        <label><input type="checkbox" id="reverseToggle" /> Umgekehrt (Deutsch → Original)</label>
-        <button id="startPractice">Üben starten</button>
-      </div>
-
-      <div id="practiceCard" style="display:none">
-        <h2>Übung</h2>
-        <div id="cardWord" class="big"></div>
-        <input id="answer" placeholder="Übersetzung eingeben" />
-        <div class="practice-controls">
-          <button id="check">Prüfen</button>
-          <button id="next">Nächstes</button>
+      <div id="practiceCard" class="practice-card" style="display:none">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+        <div class="card-content">
+          <div id="cardWord" class="word-display"></div>
+          <input id="answer" class="answer-input" placeholder="Deine Antwort..." autocomplete="off" />
         </div>
         <div id="feedback" class="feedback"></div>
-        <div id="stats" class="stats"></div>
+        <div class="card-footer">
+          <div id="stats" class="stats-text"></div>
+          <div class="practice-actions">
+            <button id="check" class="btn-primary">Prüfen</button>
+            <button id="next" class="btn-secondary">Weiter</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="card tab-panel" data-panel="list" style="display:none">
-      <h2>Vokabelliste</h2>
-      <ul id="list" class="list"></ul>
+    <!-- Add Word Panel -->
+    <section class="content-panel" data-panel="add">
+      <div class="form-card">
+        <h2>Neue Vokabel</h2>
+        <form id="addForm">
+          <div class="form-group">
+            <label for="word">Wort (Original)</label>
+            <input id="word" type="text" placeholder="z.B. apple" required autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="translation">Übersetzung</label>
+            <input id="translation" type="text" placeholder="z.B. Apfel" required autocomplete="off" />
+          </div>
+          <button type="submit" class="btn-primary btn-large">Hinzufügen</button>
+        </form>
+      </div>
     </section>
+
+    <!-- List Panel -->
+    <section class="content-panel" data-panel="list">
+      <div class="list-card">
+        <h2>Meine Vokabeln</h2>
+        <ul id="list" class="vocab-list"></ul>
+      </div>
+    </section>
+
   </main>
 
   <script src="/app.js"></script>
