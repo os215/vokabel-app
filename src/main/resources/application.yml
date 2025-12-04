@@ -19,5 +19,7 @@ spring:
       ddl-auto: update
     show-sql: false
   datasource:
-    url: jdbc:sqlserver://molfilodb.database.windows.net:1433;database=db_app_test;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;Authentication=ActiveDirectoryIntegrated
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    url: jdbc:sqlserver://molfilodb.database.windows.net:1433;database=db_app_test;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;
+    username: "${DATABASE_USER}"
+    password: "${DATABASE_PASSWORD}"
