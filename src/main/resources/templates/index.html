@@ -59,52 +59,7 @@
     </section>
   </main>
 
-  <div id="updateBanner" style="display:none;position:fixed;left:16px;right:16px;bottom:20px;background:linear-gradient(90deg,#fff,#f8fafc);border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.08);align-items:center;justify-content:space-between;gap:12px;font-weight:500;z-index:9999">
-    <div>Neue Version verfügbar — Seite neu laden?</div>
-    <div>
-      <button id="reloadBtn" style="background:#4F46E5;color:#fff;padding:8px 10px;border-radius:6px;border:none">Neu laden</button>
-    </div>
-  </div>
-
   <script src="/app.js"></script>
-  <script>
-  if('serviceWorker' in navigator){
-    function showUpdate() {
-      const b = document.getElementById('updateBanner');
-      if(!b) return;
-      b.style.display = 'flex';
-      const btn = document.getElementById('reloadBtn');
-      btn.addEventListener('click', ()=>{
-        navigator.serviceWorker.getRegistration().then(reg=>{
-          if(reg && reg.waiting){
-            reg.waiting.postMessage({type:'SKIP_WAITING'});
-          } else {
-            window.location.reload();
-          }
-        });
-      }, {once:true});
-    }
-
-    navigator.serviceWorker.getRegistration().then(reg=>{
-      if(!reg) return;
-      if(reg.waiting) showUpdate();
-      reg.addEventListener('updatefound', ()=>{
-        const newWorker = reg.installing;
-        if(newWorker){
-          newWorker.addEventListener('statechange', ()=>{
-            if(newWorker.state === 'installed' && navigator.serviceWorker.controller){
-              showUpdate();
-            }
-          });
-        }
-      });
-    }).catch(()=>{});
-
-    navigator.serviceWorker.addEventListener('controllerchange', ()=>{
-      window.location.reload();
-    });
-  }
-  </script>
 
 </body>
 </html>

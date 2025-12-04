@@ -1,8 +1,5 @@
 package net.suevern.vokabel.web;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
@@ -12,14 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class WebController {
-    private static final Log LOGGER = LogFactory.getLog(WebController.class);
-    private final ApplicationContext applicationContext;
 
-    public WebController(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
-
-    @GetMapping(value = "/")
+    @GetMapping(value = {"/", "/index.html"})
     public String getHome() {
         return "index";
     }
