@@ -17,7 +17,7 @@
   --radius-sm:8px;
   --radius-md:12px;
   --radius-lg:16px;
-  --header-height:64px;
+  --header-height:80px;
   --bottom-nav-height:64px;
 }
 
@@ -49,43 +49,56 @@ body{
   top:0;
   left:0;
   right:0;
-  height:var(--header-height);
+  min-height:var(--header-height);
   background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);
   color:white;
-  padding:12px 16px;
+  padding:14px 16px;
   box-shadow:var(--shadow-md);
   z-index:100;
   display:flex;
   flex-direction:column;
-  gap:8px;
+  gap:10px;
+  justify-content:center;
 }
 
 .app-header h1{
   font-size:18px;
   font-weight:600;
   margin:0;
+  line-height:1.2;
 }
 
 .header-controls{
   display:flex;
-  gap:8px;
-  align-items:center;
+  gap:10px;
+  align-items:stretch;
 }
 
 .list-selector{
   flex:1;
-  padding:8px 12px;
+  min-width:0;
+  padding:10px 14px;
   border:none;
   border-radius:var(--radius-sm);
   background:rgba(255,255,255,0.95);
   font-size:14px;
   font-weight:500;
   color:var(--text-primary);
+  appearance:none;
+  -webkit-appearance:none;
+  -moz-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234F46E5' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  padding-right:32px;
+  cursor:pointer;
+  line-height:1.4;
 }
 
 .icon-btn{
-  width:36px;
-  height:36px;
+  width:40px;
+  height:40px;
+  min-width:40px;
   border:none;
   border-radius:50%;
   background:rgba(255,255,255,0.2);
@@ -97,6 +110,7 @@ body{
   align-items:center;
   justify-content:center;
   transition:all 0.2s;
+  flex-shrink:0;
 }
 
 .icon-btn:active{
@@ -410,8 +424,39 @@ body{
 
 /* Responsive - Tablet/Desktop */
 @media(min-width:768px){
+  :root{
+    --header-height:90px;
+  }
+  
+  .app-header{
+    padding:16px 24px;
+  }
+  
+  .app-header h1{
+    font-size:22px;
+  }
+  
+  .list-selector{
+    font-size:15px;
+    padding:12px 16px;
+    padding-right:40px;
+  }
+  
+  .icon-btn{
+    width:44px;
+    height:44px;
+    min-width:44px;
+  }
+  
   .app-content{
     max-width:600px;
     margin:0 auto;
+  }
+  
+  .bottom-nav{
+    max-width:600px;
+    left:50%;
+    transform:translateX(-50%);
+    border-radius:12px 12px 0 0;
   }
 }
