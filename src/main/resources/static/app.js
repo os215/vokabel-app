@@ -301,8 +301,14 @@ document.addEventListener('DOMContentLoaded', () => {
     checkBtn.style.display = 'none'
     nextBtn.style.display = 'block'
     
-    if (ans === correct || alternativesList.includes(ans)) {
-      feedback.textContent = '✓ Richtig!'
+    const matchedDirect = ans === correct
+    const matchedAlt = alternativesList.includes(ans)
+    if (matchedDirect || matchedAlt) {
+      if (matchedAlt && !matchedDirect) {
+        feedback.textContent = `✓ Richtig (Alternative) — richtig: ${practiceReverse ? current.word : current.translation}`
+      } else {
+        feedback.textContent = '✓ Richtig!'
+      }
       feedback.className = 'feedback correct'
       current.correct = (current.correct || 0) + 1
     } else {
