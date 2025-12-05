@@ -8,7 +8,7 @@ let practiceReverse = false
 
 // DOM refs
 let listSelector, newListBtn, listEl, addForm, wordIn, transIn, startBtn, reverseToggle
-let practiceCard, practiceSetup, cardWord, answerIn, checkBtn, nextBtn, feedback, stats, statsSummary, progressBar
+let practiceCard, practiceSetup, cardWord, answerIn, checkBtn, nextBtn, markCorrect, feedback, stats, statsSummary, progressBar
 
 // API helpers
 async function apiGet(url) {
@@ -170,6 +170,7 @@ function nextCard() {
   answerIn.value = ''
   checkBtn.style.display = 'block'
   nextBtn.style.display = 'none'
+  markCorrect.style.display = 'none'
   
   if (practiceQueue.length === 0) {
     cardWord.textContent = '🎉 Fertig!'
@@ -221,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
   answerIn = document.getElementById('answer')
   checkBtn = document.getElementById('check')
   nextBtn = document.getElementById('next')
+  markCorrect = document.getElementById('markCorrect')
   feedback = document.getElementById('feedback')
   stats = document.getElementById('stats')
   statsSummary = document.getElementById('statsSummary')
@@ -302,7 +304,23 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       feedback.textContent = `✗ Falsch — richtig: ${practiceReverse ? current.word : current.translation}`
       feedback.className = 'feedback incorrect'
+      markCorrect.style.display = 'inline-block'
     }
+    try {
+      await apiPut(`/api/vocab/words/${current.id}`, { correct: current.correct, attempts: current.attempts })
+    } catch (e) {
+      console.error('Failed to update word stats', e)
+    }
+    renderStats()
+  }
+
+  // Mark as correct button handler
+  markCorrect.onclick = async () => {
+    if (!current) return
+    current.correct = (current.correct || 0) + 1
+    feedback.textContent = '✓ Richtig (markiert)'
+    feedback.className = 'feedback correct'
+    markCorrect.style.display = 'none'
     try {
       await apiPut(`/api/vocab/words/${current.id}`, { correct: current.correct, attempts: current.attempts })
     } catch (e) {
