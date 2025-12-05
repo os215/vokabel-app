@@ -108,6 +108,22 @@ public class VocabApiController {
                     if (payload.containsKey("translation")) word.setTranslation((String) payload.get("translation"));
                     if (payload.containsKey("correct")) word.setCorrect((Integer) payload.get("correct"));
                     if (payload.containsKey("attempts")) word.setAttempts((Integer) payload.get("attempts"));
+                    // update alternatives if provided as comma-separated string
+                    if (payload.containsKey("alternatives")) {
+                        String altStr = (String) payload.get("alternatives");
+                        word.getAlternatives().clear();
+                        if (altStr != null && !altStr.trim().isEmpty()) {
+                            String[] parts = altStr.split(",");
+                            for (String p : parts) {
+                                String t = p.trim();
+                                if (!t.isEmpty()) {
+                                    var alt = new net.suevern.vokabel.entity.VocabAlternative(t);
+                                    alt.setWord(word);
+                                    word.getAlternatives().add(alt);
+                                }
+                            }
+                        }
+                    }
                     word.getVocabList().setUpdatedAt(LocalDateTime.now());
                     return ResponseEntity.ok(vocabWordRepository.save(word));
                 })

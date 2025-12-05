@@ -2,6 +2,8 @@ package net.suevern.vokabel.entity;
 
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "vocab_word")
@@ -15,6 +17,9 @@ public class VocabWord {
 
     @Column(nullable = false)
     private String translation;
+
+    @OneToMany(mappedBy = "word", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VocabAlternative> alternatives = new ArrayList<>();
 
     @Column(nullable = false)
     private int correct = 0;
@@ -56,6 +61,14 @@ public class VocabWord {
 
     public void setTranslation(String translation) {
         this.translation = translation;
+    }
+
+    public List<VocabAlternative> getAlternatives() {
+        return alternatives;
+    }
+
+    public void setAlternatives(List<VocabAlternative> alternatives) {
+        this.alternatives = alternatives;
     }
 
     public int getCorrect() {

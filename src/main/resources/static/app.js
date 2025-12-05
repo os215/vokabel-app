@@ -292,12 +292,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!current) return
     const ans = answerIn.value.trim().toLowerCase()
     const correct = (practiceReverse ? current.word : current.translation).trim().toLowerCase()
+    // normalize alternatives whether they're an array of objects or a comma-separated string
+    const alternativesList = Array.isArray(current.alternatives)
+      ? current.alternatives.map(a => (a && a.text ? a.text : (typeof a === 'string' ? a : '')).trim().toLowerCase()).filter(Boolean)
+      : (current.alternatives || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
     current.attempts = (current.attempts || 0) + 1
     
     checkBtn.style.display = 'none'
     nextBtn.style.display = 'block'
     
-    if (ans === correct) {
+    if (ans === correct || alternativesList.includes(ans)) {
       feedback.textContent = '✓ Richtig!'
       feedback.className = 'feedback correct'
       current.correct = (current.correct || 0) + 1
@@ -317,12 +321,28 @@ document.addEventListener('DOMContentLoaded', () => {
   // Mark as correct button handler
   markCorrect.onclick = async () => {
     if (!current) return
+    const given = answerIn.value.trim()
+    // build list of strings from either array of alternative objects or CSV
+    let list = []
+    if (Array.isArray(current.alternatives)) {
+      list = current.alternatives.map(a => (a && a.text) ? a.text : (typeof a === 'string' ? a : '')).filter(Boolean)
+    } else {
+      list = (current.alternatives || '').split(',').map(s => s.trim()).filter(Boolean)
+    }
+    if (given) {
+      if (!list.map(s => s.toLowerCase()).includes(given.toLowerCase())) {
+        list.push(given)
+      }
+    }
+    const altStr = list.join(', ')
+    // represent alternatives in-memory as array of {text:...} for later checks
+    current.alternatives = list.map(t => ({ text: t }))
     current.correct = (current.correct || 0) + 1
     feedback.textContent = '✓ Richtig (markiert)'
     feedback.className = 'feedback correct'
     markCorrect.style.display = 'none'
     try {
-      await apiPut(`/api/vocab/words/${current.id}`, { correct: current.correct, attempts: current.attempts })
+      await apiPut(`/api/vocab/words/${current.id}`, { correct: current.correct, attempts: current.attempts, alternatives: altStr })
     } catch (e) {
       console.error('Failed to update word stats', e)
     }
