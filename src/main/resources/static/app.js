@@ -118,7 +118,37 @@ function renderList() {
         alert('Fehler beim Löschen')
       }
     }
+
     li.appendChild(span)
+
+    // show alternatives with remove buttons
+    if (w.alternatives && (Array.isArray(w.alternatives) ? w.alternatives.length : (w.alternatives + '').trim().length)) {
+      const altWrap = document.createElement('div')
+      altWrap.className = 'alternatives'
+      const altList = Array.isArray(w.alternatives) ? w.alternatives.map(a => a.text || a) : (w.alternatives + '').split(',')
+      altList.forEach((a) => {
+        const badge = document.createElement('span')
+        badge.className = 'alt-badge'
+        badge.textContent = a.trim()
+        const remove = document.createElement('button')
+        remove.className = 'alt-remove'
+        remove.textContent = 'x'
+        remove.title = 'Alternative entfernen'
+        remove.onclick = async () => {
+          try {
+            const newList = altList.filter(item => item.trim() !== a.trim())
+            await apiPut(`/api/vocab/words/${w.id}`, { alternatives: newList.join(', ') })
+            await loadCurrentList()
+          } catch (e) {
+            alert('Fehler beim Entfernen')
+          }
+        }
+        badge.appendChild(remove)
+        altWrap.appendChild(badge)
+      })
+      li.appendChild(altWrap)
+    }
+
     li.appendChild(del)
     listEl.appendChild(li)
   })
