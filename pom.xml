@@ -66,7 +66,7 @@
         <dependency>
             <groupId>net.seidengarn</groupId>
             <artifactId>keepass-http-java-client</artifactId>
-            <version>1.5.8</version>
+            <version>1.5.9</version>
             <scope>test</scope>
         </dependency>
 
