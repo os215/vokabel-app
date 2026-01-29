@@ -23,3 +23,22 @@ spring:
     url: jdbc:sqlserver://molfilodb.database.windows.net:1433;database=db_app_test;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;
     username: "${DATABASE_USER}"
     password: "${DATABASE_PASSWORD}"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+      show-components: when-authorized
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+

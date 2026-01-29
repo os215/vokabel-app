@@ -11,6 +11,10 @@ spring:
           azure:
             issuer-uri: https://login.microsoftonline.com/f5adcf45-2c85-41a0-aa4c-5a92714cc069/v2.0
   datasource:
-    url: jdbc:sqlserver://molfilodb.database.windows.net:1433;database=db_app_test;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    url: jdbc:hsqldb:file:target\vokabel-app-db
     username: "ENC(keepass-user:Vokabel-App-Datenbank)"
     password: "ENC(keepass:Vokabel-App-Datenbank)"
+  jpa:
+    database:
+    database-platform: org.hibernate.dialect.HSQLDialect
