@@ -20,8 +20,8 @@ spring:
       ddl-auto: update
     show-sql: false
   datasource:
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    url: jdbc:sqlserver://molfilodb.database.windows.net:1433;database=db_app_test;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: "${DATABASE_URL}"
     username: "${DATABASE_USER}"
     password: "${DATABASE_PASSWORD}"
 
@@ -42,4 +42,11 @@ management:
       enabled: true
     readinessState:
       enabled: true
+
+export:
+  database:
+    enabled: true
+    directory: ${EXPORT_DIRECTORY:./exports}
+    schedule: ${EXPORT_SCHEDULE:0 0 2 * * ?}  # Daily at 2 AM by default
+    format: json  # json or csv
 
