@@ -7,5 +7,5 @@ import java.util.List;
 
 @Repository
 public interface VocabListRepository extends JpaRepository<VocabList, Long> {
-    List<VocabList> findByOwnerEmailOrderByUpdatedAtDesc(String ownerEmail);
+    List<VocabList> findAllByOrderByUpdatedAtDesc();
 }

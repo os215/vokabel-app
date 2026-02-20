@@ -33,9 +33,8 @@ public class VocabApiController {
     }
 
     @GetMapping("/lists")
-    public List<VocabList> getLists(OAuth2AuthenticationToken token) {
-        String email = getUserEmail(token);
-        return vocabListRepository.findByOwnerEmailOrderByUpdatedAtDesc(email);
+    public List<VocabList> getLists() {
+        return vocabListRepository.findAllByOrderByUpdatedAtDesc();
     }
 
     @PostMapping("/lists")
@@ -47,10 +46,8 @@ public class VocabApiController {
     }
 
     @GetMapping("/lists/{id}")
-    public ResponseEntity<VocabList> getList(@PathVariable Long id, OAuth2AuthenticationToken token) {
-        String email = getUserEmail(token);
+    public ResponseEntity<VocabList> getList(@PathVariable Long id) {
         return vocabListRepository.findById(id)
-                .filter(list -> list.getOwnerEmail().equals(email))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
