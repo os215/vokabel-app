@@ -37,4 +37,23 @@ public class GlobalModelControllerAdvice {
     public Instant buildDate() {
         return buildProperties.getTime();
     }
+
+    @ModelAttribute("isPowerUser")
+    public Boolean isPowerUser(OAuth2AuthenticationToken token) {
+        if (token != null) {
+            return token.getAuthorities().stream()
+                    .anyMatch(auth -> "ROLE_POWERUSER".equals(auth.getAuthority()));
+        } else {
+            return false;
+        }
+    }
+
+    @ModelAttribute("isVisitor")
+    public Boolean isVisitor(OAuth2AuthenticationToken token) {
+        if (token != null) {
+            return token.getAuthorities().stream().anyMatch(auth -> "ROLE_VISITOR".equals(auth.getAuthority()));
+        } else {
+            return false;
+        }
+    }
 }

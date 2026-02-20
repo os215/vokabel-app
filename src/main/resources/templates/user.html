@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <title>User Information</title>
 </head>
@@ -18,6 +18,11 @@
         <ul>
             <li th:each="authority: ${userAuthorities}" th:text="${authority}"></li>
         </ul>
+    </dd>
+    <dt>Role:</dt>
+    <dd>
+        <span th:if="${isPowerUser}">Power User (Full Access)</span>
+        <span th:if="${isVisitor}">Visitor (Read-Only)</span>
     </dd>
     <dt>Remote-Address:</dt>
     <dd th:text="${userRemoteAddress}"/>

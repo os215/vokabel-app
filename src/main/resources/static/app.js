@@ -107,21 +107,9 @@ function renderList() {
     const li = document.createElement('li')
     const span = document.createElement('span')
     span.textContent = `${escapeHtml(w.word)} — ${escapeHtml(w.translation)}`
-    const del = document.createElement('button')
-    del.textContent = 'Löschen'
-    del.onclick = async () => {
-      if (!confirm('Vokabel wirklich löschen?')) return
-      try {
-        await apiDelete(`/api/vocab/words/${w.id}`)
-        await loadCurrentList()
-      } catch (e) {
-        alert('Fehler beim Löschen')
-      }
-    }
-
     li.appendChild(span)
 
-    // show alternatives with remove buttons
+    // show alternatives with remove buttons (only for PowerUsers)
     if (w.alternatives && (Array.isArray(w.alternatives) ? w.alternatives.length : (w.alternatives + '').trim().length)) {
       const altWrap = document.createElement('div')
       altWrap.className = 'alternatives'
@@ -130,26 +118,45 @@ function renderList() {
         const badge = document.createElement('span')
         badge.className = 'alt-badge'
         badge.textContent = a.trim()
-        const remove = document.createElement('button')
-        remove.className = 'alt-remove'
-        remove.textContent = 'x'
-        remove.title = 'Alternative entfernen'
-        remove.onclick = async () => {
-          try {
-            const newList = altList.filter(item => item.trim() !== a.trim())
-            await apiPut(`/api/vocab/words/${w.id}`, { alternatives: newList.join(', ') })
-            await loadCurrentList()
-          } catch (e) {
-            alert('Fehler beim Entfernen')
+
+        // Only show remove button for PowerUsers
+        if (window.isPowerUser) {
+          const remove = document.createElement('button')
+          remove.className = 'alt-remove'
+          remove.textContent = 'x'
+          remove.title = 'Alternative entfernen'
+          remove.onclick = async () => {
+            try {
+              const newList = altList.filter(item => item.trim() !== a.trim())
+              await apiPut(`/api/vocab/words/${w.id}`, { alternatives: newList.join(', ') })
+              await loadCurrentList()
+            } catch (e) {
+              alert('Fehler beim Entfernen')
+            }
           }
+          badge.appendChild(remove)
         }
-        badge.appendChild(remove)
         altWrap.appendChild(badge)
       })
       li.appendChild(altWrap)
     }
 
-    li.appendChild(del)
+    // Only show delete button for PowerUsers
+    if (window.isPowerUser) {
+      const del = document.createElement('button')
+      del.textContent = 'Löschen'
+      del.onclick = async () => {
+        if (!confirm('Vokabel wirklich löschen?')) return
+        try {
+          await apiDelete(`/api/vocab/words/${w.id}`)
+          await loadCurrentList()
+        } catch (e) {
+          alert('Fehler beim Löschen')
+        }
+      }
+      li.appendChild(del)
+    }
+
     listEl.appendChild(li)
   })
 }
@@ -268,18 +275,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   listSelector.onchange = () => loadCurrentList()
 
-  newListBtn.onclick = async () => {
-    const name = prompt('Name der neuen Liste:')
-    if (!name) return
-    try {
-      await apiPost('/api/vocab/lists', { name })
-      await loadLists()
-    } catch (e) {
-      alert('Fehler beim Erstellen der Liste')
+  // Only set up newListBtn handler if button exists (PowerUsers only)
+  if (newListBtn) {
+    newListBtn.onclick = async () => {
+      const name = prompt('Name der neuen Liste:')
+      if (!name) return
+      try {
+        await apiPost('/api/vocab/lists', { name })
+        await loadLists()
+      } catch (e) {
+        alert('Fehler beim Erstellen der Liste')
+      }
     }
   }
 
-  addForm.onsubmit = async (e) => {
+  // Only set up addForm handler if form exists (PowerUsers only)
+  if (addForm) {
+    addForm.onsubmit = async (e) => {
     e.preventDefault()
     const w = wordIn.value.trim()
     const t = transIn.value.trim()
@@ -302,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       alert('Fehler beim Hinzufügen der Vokabel')
     }
+  }
   }
 
   startBtn.onclick = () => {

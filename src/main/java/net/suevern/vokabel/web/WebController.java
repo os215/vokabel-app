@@ -17,7 +17,7 @@ public class WebController {
 
     @GetMapping(value = "/user.html")
     public String getUserinfo(OAuth2AuthenticationToken token, Model model) {
-        model.addAttribute("userAuthorities", token == null || token.getAuthorities() == null ? null
+        model.addAttribute("userAuthorities", token == null ? null
                 : token.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList());
         if (token != null) {
             if (token.getPrincipal() != null) {

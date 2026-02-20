@@ -15,6 +15,11 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-180.png">
   <link rel="icon" href="/icon-192.png">
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    window.isPowerUser = /*[[${isPowerUser}]]*/ false;
+    /*]]>*/
+  </script>
 </head>
 <body>
   <!-- Header with title and list selector -->
@@ -24,7 +29,7 @@
       <select id="listSelector" class="list-selector">
         <option value="">Lade Listen...</option>
       </select>
-      <button id="newListBtn" class="icon-btn" title="Neue Liste">+</button>
+      <button id="newListBtn" class="icon-btn" title="Neue Liste" th:if="${isPowerUser}">+</button>
     </div>
   </header>
 
@@ -34,7 +39,7 @@
       <span class="nav-icon">✏️</span>
       <span class="nav-label">Üben</span>
     </button>
-    <button class="nav-btn" data-tab="add">
+    <button class="nav-btn" data-tab="add" th:if="${isPowerUser}">
       <span class="nav-icon">➕</span>
       <span class="nav-label">Hinzufügen</span>
     </button>
@@ -86,7 +91,7 @@
     </section>
 
     <!-- Add Word Panel -->
-    <section class="content-panel" data-panel="add">
+    <section class="content-panel" data-panel="add" th:if="${isPowerUser}">
       <div class="form-card">
         <h2>Neue Vokabel</h2>
         <form id="addForm">
@@ -118,6 +123,10 @@
         <div class="form-group">
           <label for="userEmail">Deine E-Mail</label>
           <input id="userEmail" type="text" th:value="${usermail}" readonly />
+        </div>
+        <div class="form-group">
+          <label for="userRole">Rolle</label>
+          <input id="userRole" type="text" th:value="${isPowerUser ? 'Hauptbenutzer (Vollzugriff)' : 'Besucher (Lesezugriff)'}" readonly />
         </div>
           <div class="form-group">
               <label for="buildVersion">Build Version</label>

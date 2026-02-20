@@ -5,6 +5,7 @@ import net.suevern.vokabel.entity.VocabWord;
 import net.suevern.vokabel.repository.VocabListRepository;
 import net.suevern.vokabel.repository.VocabWordRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,7 @@ public class VocabApiController {
     }
 
     @PostMapping("/lists")
+    @PreAuthorize("hasAnyRole('POWERUSER')")
     public VocabList createList(@RequestBody Map<String, String> payload, OAuth2AuthenticationToken token) {
         String email = getUserEmail(token);
         String name = payload.getOrDefault("name", "Neue Liste");
@@ -53,6 +55,7 @@ public class VocabApiController {
     }
 
     @PutMapping("/lists/{id}")
+    @PreAuthorize("hasAnyRole('POWERUSER')")
     public ResponseEntity<VocabList> updateList(@PathVariable Long id, @RequestBody Map<String, String> payload, OAuth2AuthenticationToken token) {
         String email = getUserEmail(token);
         return vocabListRepository.findById(id)
@@ -68,6 +71,7 @@ public class VocabApiController {
     }
 
     @DeleteMapping("/lists/{id}")
+    @PreAuthorize("hasAnyRole('POWERUSER')")
     public ResponseEntity<Void> deleteList(@PathVariable Long id, OAuth2AuthenticationToken token) {
         String email = getUserEmail(token);
         return vocabListRepository.findById(id)
@@ -80,6 +84,7 @@ public class VocabApiController {
     }
 
     @PostMapping("/lists/{listId}/words")
+    @PreAuthorize("hasAnyRole('POWERUSER')")
     public ResponseEntity<VocabWord> addWord(@PathVariable Long listId, @RequestBody Map<String, String> payload, OAuth2AuthenticationToken token) {
         String email = getUserEmail(token);
         return vocabListRepository.findById(listId)
@@ -96,6 +101,7 @@ public class VocabApiController {
     }
 
     @PutMapping("/words/{wordId}")
+    @PreAuthorize("hasAnyRole('POWERUSER')")
     public ResponseEntity<VocabWord> updateWord(@PathVariable Long wordId, @RequestBody Map<String, Object> payload, OAuth2AuthenticationToken token) {
         String email = getUserEmail(token);
         return vocabWordRepository.findById(wordId)
@@ -128,6 +134,7 @@ public class VocabApiController {
     }
 
     @DeleteMapping("/words/{wordId}")
+    @PreAuthorize("hasRole('POWERUSER')")
     public ResponseEntity<Void> deleteWord(@PathVariable Long wordId, OAuth2AuthenticationToken token) {
         String email = getUserEmail(token);
         return vocabWordRepository.findById(wordId)
