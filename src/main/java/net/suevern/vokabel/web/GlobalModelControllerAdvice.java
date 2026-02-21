@@ -5,7 +5,11 @@ import java.text.MessageFormat;
 import java.time.Instant;
 
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -24,8 +28,18 @@ public class GlobalModelControllerAdvice {
     }
 
     @ModelAttribute("usermail")
-    public String usermail(OAuth2AuthenticationToken token) {
-        return token == null || token.getPrincipal() == null ? null : token.getPrincipal().getAttribute("email");
+    public String usermail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof OAuth2AuthenticationToken token) {
+            OAuth2User principal = token.getPrincipal();
+            if (principal != null) {
+                Object email = principal.getAttribute("email");
+                return email != null ? email.toString() : null;
+            }
+        } else if (authentication != null && authentication.getPrincipal() instanceof UserDetails userDetails) {
+            return userDetails.getUsername();
+        }
+        return null;
     }
 
     @ModelAttribute("buildVersion")
@@ -39,21 +53,22 @@ public class GlobalModelControllerAdvice {
     }
 
     @ModelAttribute("isPowerUser")
-    public Boolean isPowerUser(OAuth2AuthenticationToken token) {
-        if (token != null) {
-            return token.getAuthorities().stream()
+    public Boolean isPowerUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return authentication.getAuthorities().stream()
                     .anyMatch(auth -> "ROLE_POWERUSER".equals(auth.getAuthority()));
-        } else {
-            return false;
         }
+        return false;
     }
 
     @ModelAttribute("isVisitor")
-    public Boolean isVisitor(OAuth2AuthenticationToken token) {
-        if (token != null) {
-            return token.getAuthorities().stream().anyMatch(auth -> "ROLE_VISITOR".equals(auth.getAuthority()));
-        } else {
-            return false;
+    public Boolean isVisitor() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null) {
+            return authentication.getAuthorities().stream()
+                    .anyMatch(auth -> "ROLE_VISITOR".equals(auth.getAuthority()));
         }
+        return false;
     }
 }

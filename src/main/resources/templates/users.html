@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <title>Benutzerverwaltung - Vokabel Trainer</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .user-management-container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .page-header h1 {
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--border);
+    }
+
+    .btn-danger {
+      background-color: var(--error);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #059669;
+    }
+
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 12px;
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .users-table thead {
+      background-color: var(--bg-secondary);
+    }
+
+    .users-table th,
+    .users-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .users-table th {
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .users-table tbody tr:hover {
+      background-color: var(--bg-primary);
+    }
+
+    .users-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-disabled {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      color: var(--text-primary);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .alert-success {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+    }
+
+    .alert-error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--primary);
+      text-decoration: none;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      color: var(--primary-dark);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="user-management-container">
+    <a href="/" class="back-link">← Zurück zur Startseite</a>
+
+    <div class="page-header">
+      <h1>👥 Benutzerverwaltung</h1>
+      <button class="btn btn-primary" onclick="openCreateUserModal()">
+        + Neuer Benutzer
+      </button>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>E-Mail</th>
+          <th>Rolle</th>
+          <th>Status</th>
+          <th>Erstellt</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody id="usersTableBody">
+        <tr>
+          <td colspan="6">
+            <div class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <p>Lade Benutzerdaten...</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create User Modal -->
+  <div id="createUserModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Neuen Benutzer erstellen</h2>
+      </div>
+      <form id="createUserForm">
+        <div class="form-group">
+          <label for="newUserName">Name</label>
+          <input type="text" id="newUserName" required />
+        </div>
+        <div class="form-group">
+          <label for="newUserEmail">E-Mail</label>
+          <input type="email" id="newUserEmail" required />
+        </div>
+        <div class="form-group">
+          <label for="newUserPassword">Passwort</label>
+          <input type="password" id="newUserPassword" required minlength="6" />
+        </div>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-top: -10px;">
+          Hinweis: Interne Benutzer erhalten automatisch die VISITOR-Rolle (nur Lesezugriff).
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeCreateUserModal()">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Erstellen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reset Password Modal -->
+  <div id="resetPasswordModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Passwort zurücksetzen</h2>
+      </div>
+      <form id="resetPasswordForm">
+        <input type="hidden" id="resetUserId" />
+        <p>Neues Passwort für <strong id="resetUserName"></strong>:</p>
+        <div class="form-group">
+          <label for="newPassword">Neues Passwort</label>
+          <input type="password" id="newPassword" required minlength="6" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeResetPasswordModal()">Abbrechen</button>
+          <button type="submit" class="btn btn-primary">Passwort zurücksetzen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete User Confirmation Modal -->
+  <div id="deleteUserModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Benutzer löschen</h2>
+      </div>
+      <input type="hidden" id="deleteUserId" />
+      <p>Möchten Sie den Benutzer <strong id="deleteUserName"></strong> wirklich löschen?</p>
+      <p style="color: var(--error); font-size: 14px;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeDeleteUserModal()">Abbrechen</button>
+        <button type="button" class="btn btn-danger" onclick="confirmDeleteUser()">Löschen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let users = [];
+
+    // Load users on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUsers();
+    });
+
+    // Load all users
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/users');
+        if (!response.ok) throw new Error('Failed to load users');
+        users = await response.json();
+        renderUsers();
+      } catch (error) {
+        showAlert('Fehler beim Laden der Benutzer: ' + error.message, 'error');
+        document.getElementById('usersTableBody').innerHTML = `
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-state-icon">❌</div>
+                <p>Fehler beim Laden der Benutzerdaten</p>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // Render users table
+    function renderUsers() {
+      const tbody = document.getElementById('usersTableBody');
+
+      if (users.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <div class="empty-state-icon">👤</div>
+                <p>Noch keine Benutzer vorhanden</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = users.map(user => `
+        <tr>
+          <td>${escapeHtml(user.name)}</td>
+          <td>${escapeHtml(user.email)}</td>
+          <td>
+            ${user.roles.map(role => `<span class="role-badge">${role}</span>`).join(' ')}
+          </td>
+          <td>
+            <span class="status-badge ${user.enabled ? 'status-active' : 'status-disabled'}">
+              ${user.enabled ? 'Aktiv' : 'Deaktiviert'}
+            </span>
+          </td>
+          <td>${formatDate(user.createdAt)}</td>
+          <td>
+            <div class="action-buttons">
+              ${user.enabled
+                ? `<button class="btn btn-sm btn-secondary" onclick="disableUser(${user.id}, '${escapeHtml(user.name)}')">Deaktivieren</button>`
+                : `<button class="btn btn-sm btn-success" onclick="enableUser(${user.id}, '${escapeHtml(user.name)}')">Aktivieren</button>`
+              }
+              <button class="btn btn-sm btn-primary" onclick="openResetPasswordModal(${user.id}, '${escapeHtml(user.name)}')">Passwort</button>
+              <button class="btn btn-sm btn-danger" onclick="openDeleteUserModal(${user.id}, '${escapeHtml(user.name)}')">Löschen</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Create User Modal
+    function openCreateUserModal() {
+      document.getElementById('createUserModal').classList.add('active');
+      document.getElementById('createUserForm').reset();
+    }
+
+    function closeCreateUserModal() {
+      document.getElementById('createUserModal').classList.remove('active');
+    }
+
+    document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('newUserName').value;
+      const email = document.getElementById('newUserEmail').value;
+      const password = document.getElementById('newUserPassword').value;
+
+      try {
+        const response = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Fehler beim Erstellen des Benutzers');
+        }
+
+        showAlert('Benutzer erfolgreich erstellt', 'success');
+        closeCreateUserModal();
+        loadUsers();
+      } catch (error) {
+        showAlert(error.message, 'error');
+      }
+    });
+
+    // Disable User
+    async function disableUser(userId, userName) {
+      if (!confirm(`Benutzer "${userName}" deaktivieren?`)) return;
+
+      try {
+        const response = await fetch(`/api/users/${userId}/disable`, { method: 'PUT' });
+        if (!response.ok) throw new Error('Fehler beim Deaktivieren');
+
+        showAlert('Benutzer deaktiviert', 'success');
+        loadUsers();
+      } catch (error) {
+        showAlert(error.message, 'error');
+      }
+    }
+
+    // Enable User
+    async function enableUser(userId, userName) {
+      try {
+        const response = await fetch(`/api/users/${userId}/enable`, { method: 'PUT' });
+        if (!response.ok) throw new Error('Fehler beim Aktivieren');
+
+        showAlert('Benutzer aktiviert', 'success');
+        loadUsers();
+      } catch (error) {
+        showAlert(error.message, 'error');
+      }
+    }
+
+    // Reset Password Modal
+    function openResetPasswordModal(userId, userName) {
+      document.getElementById('resetPasswordModal').classList.add('active');
+      document.getElementById('resetUserId').value = userId;
+      document.getElementById('resetUserName').textContent = userName;
+      document.getElementById('resetPasswordForm').reset();
+    }
+
+    function closeResetPasswordModal() {
+      document.getElementById('resetPasswordModal').classList.remove('active');
+    }
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const userId = document.getElementById('resetUserId').value;
+      const password = document.getElementById('newPassword').value;
+
+      try {
+        const response = await fetch(`/api/users/${userId}/reset-password`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+
+        if (!response.ok) throw new Error('Fehler beim Zurücksetzen des Passworts');
+
+        showAlert('Passwort erfolgreich zurückgesetzt', 'success');
+        closeResetPasswordModal();
+      } catch (error) {
+        showAlert(error.message, 'error');
+      }
+    });
+
+    // Delete User Modal
+    function openDeleteUserModal(userId, userName) {
+      document.getElementById('deleteUserModal').classList.add('active');
+      document.getElementById('deleteUserId').value = userId;
+      document.getElementById('deleteUserName').textContent = userName;
+    }
+
+    function closeDeleteUserModal() {
+      document.getElementById('deleteUserModal').classList.remove('active');
+    }
+
+    async function confirmDeleteUser() {
+      const userId = document.getElementById('deleteUserId').value;
+
+      try {
+        const response = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Fehler beim Löschen');
+
+        showAlert('Benutzer gelöscht', 'success');
+        closeDeleteUserModal();
+        loadUsers();
+      } catch (error) {
+        showAlert(error.message, 'error');
+      }
+    }
+
+    // Utility functions
+    function showAlert(message, type) {
+      const alertContainer = document.getElementById('alertContainer');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.textContent = message;
+      alertContainer.appendChild(alert);
+
+      setTimeout(() => {
+        alert.remove();
+      }, 5000);
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
+

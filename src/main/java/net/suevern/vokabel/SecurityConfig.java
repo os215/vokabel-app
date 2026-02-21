@@ -1,15 +1,28 @@
 package net.suevern.vokabel;
 
+import net.suevern.vokabel.security.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private final CustomUserDetailsService userDetailsService;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
@@ -26,6 +39,7 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/**",
                                 "/error",
+                                "/styles.css",
                                 "/actuator/health/**"
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -33,8 +47,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers("/api/**")
                 )
-                .oauth2Login(Customizer.withDefaults())
-                .logout(logout -> logout.logoutSuccessUrl("/"));
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                        .permitAll()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/", true)
+                )
+                .logout(logout -> logout.logoutSuccessUrl("/"))
+                .userDetailsService(userDetailsService);
         return http.build();
     }
 }
