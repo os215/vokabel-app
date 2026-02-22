@@ -2,6 +2,12 @@ FROM eclipse-temurin:25-jdk-jammy
 WORKDIR /app
 COPY target/*.jar /app/app.jar
 
+# Install curl for health checks
+RUN apt-get update && \
+    apt-get install -y curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create a non-root user to run the application
 RUN groupadd -r appuser -g 1001 && \
     useradd -r -u 1001 -g appuser appuser && \
