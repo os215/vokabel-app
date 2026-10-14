@@ -4,7 +4,7 @@ A vocabulary-learning web application with a Spring Boot backend, a responsive b
 
 ## Stack
 
-- Java 17 and Spring Boot 4.1.1
+- Java 25 and Spring Boot 4.1.1
 - Maven
 - MariaDB through Spring Data JPA
 - Thymeleaf templates and vanilla JavaScript
@@ -12,7 +12,7 @@ A vocabulary-learning web application with a Spring Boot backend, a responsive b
 
 ## Run locally
 
-Install Java 17 or newer, Maven, and a MariaDB instance. Configure these environment variables before starting the application:
+Install Java 25 or newer, Maven, and a MariaDB instance. Configure these environment variables before starting the application:
 
 | Variable | Purpose |
 | --- | --- |
