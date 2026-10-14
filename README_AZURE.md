@@ -1,44 +1,62 @@
-Azure Container Apps deployment (overview)
+# Azure Container Apps deployment
 
-1) Build the fat JAR locally:
-   mvn -DskipTests package
+This guide describes the deployment flow; use your own Azure resource names and keep credentials in Azure secrets or a secret manager, never in this repository.
 
-2) Build and push image to Azure Container Registry (ACR):
-   az group create -n rg_app-test -l germanywestcentral
-   # az provider register --namespace Microsoft.ContainerRegistry --wait
-   az acr create -n molfiloacr-g rg_app-test --sku Standard --admin-enabled true
-   az acr login -n molfiloacr
-   docker build -t vokabel-server:latest .
-   docker tag vokabel-server:latest molfiloacr.azurecr.io/vokabel-server:latest
-   docker push molfiloacr.azurecr.io/vokabel-server:latest
+## Prerequisites
 
-3) Create Container Apps environment and Container App (public ingress):
-   # az provider register -n Microsoft.OperationalInsights --wait
-   az containerapp env create -g rg_app-test -n env-app-test -l germanywestcentral
-   az containerapp create --name vokabel-app --resource-group rg_app-test --environment env-app-test --image molfiloacr.azurecr.io/vokabel-server:latest --ingress external --target-port 8080 --registry-server molfiloacr.azurecr.io --registry-username $(az acr credential show -n molfiloacr --query username -o tsv) --registry-password $(az acr credential show -n molfiloacr --query passwords[0].value -o tsv)
+- Azure CLI, Docker, and access to an Azure subscription
+- An Azure Container Registry (ACR), Container Apps environment, and MariaDB-compatible database
+- An Azure app registration for OIDC sign-in
 
-4) Verify: az containerapp show -g rg_app-test -n vokabel-app --query properties.configuration.ingress.fqdn -o tsv
+## Build and publish the image
 
-5) Create App Registration
-   APP_ID:
-   az ad app create --display-name "Vokabel Trainer" --web-redirect-uris "https://vokabel-app.jollyriver-109d3335.germanywestcentral.azurecontainerapps.io/" --query appId -o tsv
-   Client Secret:
-   az ad app credential reset --id "$APP_ID" --append --credential-description "ci-secret-$(date -u +%Y%m%d%H%M%S)" \
-   --years 2 --query password -o tsv
-6) Volume / Storage
-   az storage account create -n storagevokabeldata -g rg_app-test -l germanywestcentral --sku Standard_LRS
-   az storage account keys list -g rg_app-test -n storagevokabeldata --query '[0].value' -o tsv
+Build the application and container image from the repository root:
 
-how can i update the application?
+```sh
+mvn -DskipTests package
+docker build -t vokabel-server:latest .
+```
 
-   Manual update: edit code, build the fat JAR and image, then push the image to your registry — e.g. mvn -DskipTests
-   package && docker build -t vokabel-server:latest . && docker tag vokabel-server:latest <ACR>
-   .azurecr.io/vokabel-server:latest && az acr login -n <ACR> && docker push <ACR>.azurecr.io/vokabel-server:latest.
-   Deploy the new image to Azure Container Apps (creates a new revision): az containerapp update --name vokabel-app -g
-   <RG> --image <ACR>.azurecr.io/vokabel-server:latest (or use az containerapp create if first deploy); the CA service
-   will roll the new revision live.
-   For PWA clients, bump your SW cache name or change FILES_TO_CACHE and call self.skipWaiting()/clients.claim() in
-   sw.js so browsers fetch the new assets (and optionally show a “Reload to update” prompt to users).
-   
-   
-Notes: adjust JAVA_OPTS via --env-vars when creating the containerapp if you need memory limits or JVM tuning. For a fully automated CI/CD, build the image in GitHub Actions and push to ACR, then use 'az containerapp revision set-mode' and roll updates.
+Sign in to your registry, tag the image with its registry host, and push it:
+
+```sh
+az acr login --name <ACR_NAME>
+docker tag vokabel-server:latest <ACR_LOGIN_SERVER>/vokabel-server:latest
+docker push <ACR_LOGIN_SERVER>/vokabel-server:latest
+```
+
+Configure the Container App to pull from ACR using a managed identity with the `AcrPull` role. Avoid enabling registry admin credentials for routine deployment.
+
+## Configure the Container App
+
+Create the app in an existing Container Apps environment with external HTTPS ingress and target port `8080`, or update an existing app to the new image:
+
+```sh
+az containerapp update \
+  --name <APP_NAME> \
+  --resource-group <RESOURCE_GROUP> \
+  --image <ACR_LOGIN_SERVER>/vokabel-server:latest
+```
+
+For a first deployment, use `az containerapp create` with your environment, registry identity, ingress, and image settings. Configure these application environment variables on the app:
+
+- `CLIENT_ID`, `CLIENT_SECRET`, `TENANT_ID`
+- `DATABASE_URL`, `DATABASE_USER`, `DATABASE_PASSWORD`
+
+Store sensitive values as Container Apps secrets and expose them to the container through secret references. Do not print secrets in build output or commit them to files. The application also uses forwarded headers when running behind the Azure ingress.
+
+## Configure Azure sign-in
+
+Register this redirect URI in the Azure app registration, replacing the host with the Container App's HTTPS domain:
+
+```text
+https://<APP_FQDN>/login/oauth2/code/azure
+```
+
+Assign the appropriate application role to each user. The application recognizes `POWERUSER`, `PowerUser`, `VokabelPowerUser`, `VISITOR`, `Visitor`, and `VokabelVisitor` values in the OIDC `roles` or `groups` claims. Group object IDs are not mapped automatically. See [Authentication and roles](docs/AUTHENTICATION_AND_ROLES.md).
+
+## Verify and update
+
+Use the Azure-generated application FQDN to open the site and verify sign-in and database connectivity. The health endpoint used by the container health check is `/actuator/health`.
+
+For an update, build and push a new image, then run the `az containerapp update` command above with the new image tag. Container Apps creates a new revision. Use immutable version tags for releases rather than relying on `latest`.
